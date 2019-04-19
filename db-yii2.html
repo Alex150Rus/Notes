@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>l2-db-yii2</title>
+  <style>
+    p, h4 {
+      padding-left: 40px;
+    }
+  </style>
+</head>
+<body> 
+  <h4>Урок 2. Работа с базой данных</h4>
+  <p>
+    За работу с БД отвечает <b>компонент db (app/config/web)</b>. Его настройка в (app/config/db). <br>
+    Обращение к компонентам yii: \Yii:$app->db->createCommand("INSERT INTO test (title, content) VALUES ('yii', 'good')").<br> 
+    КриэйтКомманд создаёт объект команды, содержащей внутри запрос для его выполнения: ->execute(),<br><br> 
+
+    \Yii:$app->db->createCommand()->update('product', ['price' => 100], 'id = :id', [':id' => 1])-> execute()<br>
+    insert и delete выполняются аналогично<br><br>
+      
+    <b>Для вставки нескольких строк:</b> -> batchInsert('product', ['price', 'name'], <br>
+    [[111, 'name1'],[222, 'name2']])<br><br>
+      
+    Ещё есть методы для изменения таблицы: altercolumn, createTable, createIndex, addColmn...<br><br>
+
+    <b>Запрос на выборку:</b> $res= \Yii:$app->db->createCommand("SELECT * FROM test WHERE id = :id")-><br>
+    bindValue('id:', 3) || bindParam([':id' = > 3])->queryOne() || queryAll() || <br>
+    queryColumn(вернёт массив значений колонки) || queryScalar(для количества колонок COUNT).<br>
+    В $res получим ассоциативный массив.<br><br>
+
+    <b>Команды выше - для сложных запросов, которые можно оптимизировать.</b> Если у нас несколько баз,<br>
+    то всегда можно создать ещё один компонент 'db2' со своей конфигурацией<br><br>
+
+    <b>Миграции</b> - файлики с SQL запросами, приводящими к изменениям в БД.<br>
+    1) создал табличку таскс 2) создал табличку юзерс и индексы 3)добавил внешний ключ в таскс.<br> 
+    Миграции выполняются друг за другом. Также мы в них должны предусматривать возможность отката<br><br>
+
+    php yii - список команд, php yii migrate/create create_tasks_table. Появляется папочка migrations.<br>
+    В ней хранятся наши миграции. Так как мы правильно назвали файл, то в самом файле миграции уже будут<br>
+    созданы <b>методы для создания safeUp</b>($this->createTable('tasks', ['id' => $this->primaryKey()<br>
+    - создаст как INT NOT NULL AUTO_INCREMENT PRIMARY KEY,<br>
+    'name' => $this->string(здесь можно поставить значение, 255-по умолчанию)->notNull(),<br>
+    'date'=>$this->dateTime(), 'description' => $this->text(),<br>
+    'responsible_id'=>$this->integer()->defaultValue(100)->notNull()]))<br>
+    $this->createIndex('ix_tasks_responsible', 'tasks', 'responsible_id')<br>
+    $this->addForeignKey('fx_taskuser_user', 'task_user', ['user_id'], 'user', ['id']);<br>
+    $this->addForeignKey('fx_taskuser_task', 'task_user', ['task_id'], 'task', ['id']);<br>
+    $this->addForeignKey('fx_task_user1', 'task', ['creator_id'], 'user', ['id']);<br>
+    $this->addForeignKey('fx_task_user2', 'task', ['updater_id'], 'user', ['id']);<br>
+    и <b>отката safeDown</b>($this->dropTable('tasks'))  return true или просто return таблицы.<br><br>
+
+    <b>ActiveRecord</b> - (производительность ниже и ниже универсальность - гибкость; плохо подходит для работы<br>
+    с большим объёмом данных и сложных замороченных запросов: множественные джойны с условиями)<br>
+    модель, которая помимо хранения данных и валидации, связана с табличкой в БД и может из этой базы<br>
+    возвращать и получать данные в виде экземпляров самой себя. Мы можем создать AR сами, но у нас есть gii<br>
+    - страница автогенерации кода<br>
+    В ней выбираем имя таблицы, для которой делаем модель, ставим имя класса и namespace app\models\tables<br>
+    (чтобы отдельно хранились от моделей). Наследуемся от yii\db\Active Record. В Database Connection ID<br>
+    указывается имя компонента, с которым связан ActiveRecord. ActiveRecord это прежде всего модель<br>
+    - поэтому ёё основная задача - хранить и валидировать данные.<br>
+    При создании Active record анализируются foreign keys из БД и создаются соответствующие методы<br><br>
+
+    AR хранит атрибуты в свойстве - массиве, который называется properties, но доступ к ним осуществляется<br>
+    как к обычным публичным свойствам через магические методы. <b>Сохраним экземпляр нашей модели в БД.</b>><br>
+    $model = new Tasks();  $model->name = 'new Task'; $model->description = 'someD'; $model->date= date('Y-m-d');<br>
+    $model->responsible_id = 2; $model-><b>save()</b>;<br><br>
+
+    Product::updateAll([ассоциативный массив значений], условия, по которым выбираются <b>записи для апдэйта</b>);<br><br>
+
+    Теперь извлечём данные из БД: $model = Tasks::findOne(2); Получим экземпляр объекта. Там есть свойства -<br>
+    текущие атрибуты и старые атрибуты (предыдущее состояние), которые нужны, чтобы апдэйтить только те данные,<br>
+    которые изменились. 2 - поиск происходит не по id а по primary key<br><br>
+
+    К стати, в главном объекте ActiveRecord есть метод getDb - он возвращает компонент 'db'<br>
+    - нужно сделать соответствубщее переопределение, если у нас другой компонент отвечает за БД<br><br>
+
+    Там же есть метод primaryKey - findOne в качестве параметра использует значение, возвращаемое этим свойством.<br>
+    Мы также можем переопределить этот метод и вместо primaryKey указать любое поле таблицы.<br><br>
+
+    Всякий раз, когда мы генерируем запросв к БД - читается схема нашей таблички в БД, на основании которой строится<br>
+    AR(property, правила, определяются первичные ключи). Каждый раз делать этот запрос - слишком накладно. Именно для<br>
+    этого в файле db предусмотрена возможность включения кэширования. Но оно может привести к ошибкам... Добавили в БД<br>
+    новый столбец, но кэш старый. Будет ошибка Но на продакшене кэш схемы нужно включать.<br><br>
+
+    На самом деле Tasks::findOne может искать по любому полю, нужно только передать параметры массивом ['name' => 'task2',<br>
+    можно массивом указать условие] - ищем по полю name на точное вхождение. Если хотим найти несколько полей, то Task::findAll().<br>
+    Но он ищет только по параметрам. Нельзя просто так взять и получить всё не указывая ничего в скобках. Task::findAll([2,4,8])<br><br>
+
+    выберет все записи из таблицы -Tasks::find()->all(); Изменение записи: сначала нужно её найти, $model=Tasks::findOne(9);<br>
+    $model->description = 'очень важная задача'; $model->save();<br><br>
+
+    <b>Удаление записей два способа:</b> 1) Tasks::deleteAll([2,5,6]) 2) $model = Tasks::findOne(9); $model->delete;<br><br>
+      
+    Почему метод Tasks::find()->all() используется как цепочка? Метод find даст нам объект ActiveQuery<br>
+    - у него есть много публичных свойств, похожих на sql запросы (sql, on, joinWith, select, selectOption,<br>
+    distinct, from, groupBy, join, having, union, params). У нас также есть Query - просто запрос.<br>
+    В общем - это объект запроса: класс, который позволяет нам в объектно ориентированном виде собирать sql запрос<br>
+    и он будет привязан к ActiveRecord<br><br>
+
+    Т.е. мы фактически можем писать запросы так:  <b>$query = new Query()</b> - необходимо создавать свой экземпляр<br>
+    для каждого селекта, $query->select(['id','name']), также в скобках можно передать часть запроса с асами, алиасами<br>
+    и как специальный объект expression. И дальше по цепочке вызовов можно собрать свой запрос ->from()-><br>
+    where(andWhere,orWhere, join, orderBy. ->all() /one()/column()/scalar()/exists()/count(). Получается,<br>
+    <b>когда мы делаем find() - нам возвращается объект Query с запросом 'SELECT * FROM tasks'</b> и при желании<br>
+    мы можем его модифицировать. Сложные запросы делаем чере createCommand, а простые через Query<br>
+    where(['id'=> 1, 'active' => 1]) - сдесь не нужно писать 'id => :id, [':id' =>1 - Query builder сам это делает<br>
+    where(['<>','id','1'])<br>
+    where(['OR', ['<>','id','1'], ['price' => 1])<br>
+    where(['id'=>[1,3,4]]) - id in (1, 3, 4)<br>
+    leftJoin(table: 'user', on: 'user.id = product.id')<br>
+    orderBy(['id' => SORT_ASC, 'price' => SORT_DESC])<br>
+    indexBy('id')<br>
+    asArray() - получить данные в виде ассоциативного массива<br><br>
+
+    Часто бывают ситуации, когда таблички связаны. например tasks связан с пользователем через responsible_id<br>
+    и когда мы получаем данные, нам нужно получить и эти связанне данные. В Yii есть возможность установить связи<br>
+    между ActiveRecords и автоматически эти связи получать, если у нас в базе есть foreign key.<br><br>
+
+    Одна из возможностей модели. Доступ к свойствам атрибутов возможен через магические методы, но на этом магия в модели<br>
+    не заканчивается. Мы можем в нашей модели создавать псевдоСвойства. Допустим, в модели Tasks мы укажем в<br>
+    JSDoc @property string $user и напишем геттер, в котором можно вернуть что угодно.<br>
+    public function getUser(){return 'А вот он я'}. В таком случае, при обращении к свойству, которого нет<br>
+    - сработает этот метод. Связи используют эту возможность: public function getTest()<br>
+    {return $this->hasOne(если связь - один к одному - Test::class, ['id'=>'responsible_id'<br>
+    - 'это линк - указываем какое поле на что ссылается]) || hasMany(если связь - один ко многим)} И для получения<br>
+    этой связанной записи: $tasks= Tasks::findOne(2); $tasks->test
+
+    <br><b>Связь многие ко многим</b> делается через табличку - посредника, связывающую айдишники. Мы можем реализовать<br>
+    и такую связь: public function getTest() {return $this->hasOne(Test::class, ['id'=> 'responsible_id'])-><br>
+    через промежуточный релейшн. Здесь также возникает вопрос оптимизации. Можно организовать жадную загрузку:<br>
+    $tasks = Tasks::find()->with('test' - имя рилэйшона) ->all();<br><br>
+
+    $product = new Product();<br>
+    $model = Task::findOne(1);<br>
+    <b>Не правильно</b> $creator = User::findOne($model->creator_id);<br> 
+    <b>Правильно:</b> $creator = $model->getCreator()->AsArray(как опция, чтобы получить результат в виде массива,<br>
+    а не модели Эктив рекорд)->one(); Или, если не хотим ничего настраивать можно $creator = $model->creator<br>
+    -обращаемся к виртуальному свойству (рилэйшн)<br><br>
+
+    Предложение - для всех имён рилэйшона создавать константы. Например в классе Task extends Active Record:<br>
+    conts RELATION_CREATOR = 'creator';<br>
+    По сути - у нас всё получается без джойнов, но они необходимы, когда мы собираемся отсортировать полученные данные как-то<br>
+    $models = Task::find()->joinWith(имя рилэйшена'creator')->all(); Есть ещё innerJoinWith<br><br>
+
+    $models = Task::find()->all();<br>
+    <b>Отложенная/ленивая загрузка - lazy load:</b><br>
+    foreach ($models as $model) {<br>
+    echo $model->creator->id; // буджет каждый раз выполняться отдельный запрос. Это не эффективно}<br><br>
+
+    <b>Жадная загрузка: Получение одним запросом информации о всех создателях задач</b><br>
+    $models = Task::find()->with(имя рилэйшена'creator')->all();<br><br>
+      
+    Есть более сложный вид <b>связи: через таблицу.</b><br> 
+    $user- = User::findOne(1);<br>
+    //хотим получить информацию о задачах, которые этому пользователю расшарили. Для этого нужно сначала узнать<br>
+    айдишники расшаренных задач, а потом с ними пойти в таблицу таск и в ней получить инфу о задачах.<br>
+    Смотри скриншоты getAccessedTasks и viaTable(если не создали промежуточную таблицу task_user<br><br>
+  </p>
+
+  <div style="margin-left:40px; align-items: center">
+    <img src="/img/getAccessedTasks.jpg" alt="getAccessedTasks" style="margin-bottom: 12px"><br>
+    <img src="/img/viaTable.jpg" alt="viaTabke" width="765px">
+  </div>
+  <p>
+    с помощью настроек связанных данных мы их можем не только получать, но и сохранять в базу.<br>
+    $user = User::findOne(2);<br>
+    $task = newTask();<br>
+    $task->title = '';<br>
+    $task->descroption = '';<br>
+    $task->creator_id = $user->id;<br>
+    $task->created_at = time();<br>
+    $task->save; - эти две строчки можем заменить одной ; $task->link(Task::RELATION_CREATOR, $user)<br><br>
+
+    Дадим 4-ому пользователю доступ к третьей задаче:<br>
+    $user = User::findOne(4);<br>
+    $task = Task::findOne(3);<br>
+    $user -> link (User::RELATION_ACCESSED_TASKS, $task);
+  </p>
+</body>
+</html>

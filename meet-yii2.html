@@ -5,10 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>l1-meet-yii2</title>
+  <style>
+      p, h4 {
+        padding-left: 40px;
+      }
+    </style>
 </head>
 <body> 
-  <h4 style="padding-left: 40px">Урок 1. Знакомьтесь с Yii</h4>
-  <p style="padding-left: 40px"> 
+  <h4>Урок 1. Знакомьтесь с Yii</h4>
+  <p> 
     По правилам YII любой контроллер, должен содержать слово Controller.<br>
     /index.php?r=my-task/my-test& params<br>
     Controller наследуется от базового класса Controller (yii/web).<br><br> 
@@ -69,13 +74,31 @@
 
     Роутинг - процесс связи между урлом и кодом в нашем приложении.<br><br>
 
-    Хэлпер - класс, у которого собраны статические методы, для выполнения определённых функций:<br>
+    <b>Хэлпер</b> - класс, у которого собраны статические методы, для выполнения определённых функций:<br>
     генерация html и другие конкретные задачи. Свой хелпер можно сделать, унаследовашись от BaseХэлпера.<br>
     Рассмотрим функциональность модели. Данные в ней хранятся не в свойствах и полях, а в атрибутах<br>
     (просто так называют поля и свойства, так как в разных типах моделей данные будут хранится по разному).<br>
     ->getAttributes() - массив всех атрибутов модели ActiveRecord или массив всех публичных нестатических свойств Модели.<br>
     VarDumper::dumpAsString($product->getAttributes(), глубина массива цифрой, расскрашивать если то true);<br>
-    VarDumper::dump($product->getAttributes(), 4, true).<br>
+    VarDumper::dump($product->getAttributes(), 4, true).<br><br>
+
+    <b>Сценарии</b> - помогают нам, когда мы одну и туже модель применяем в разных ситуациях<br>
+    $model->setScenario('create') (в actionCreate указывавем)<br>
+    $model->setScenario('update') (в actionUpdate указывавем)<br>
+    а в методе rules указывавем 'on' => 'update' - будет работать во всех этих сценариях;<br>
+    'except' => 'update' - во всех кроме update;<br><br>
+
+    scenarios() {<br>
+    return [<br>
+    self:SCENARIO_DEFAULT => ['name', 'price', 'id'] - активные атрибуты - безопасные атрибуты<br>
+    (можно производить массовую загрузку) и атрибуты, для которых выполняется  валидация.<br>
+    Теперь правило перестаёт дейстовать: если для атрибута написано правило, то этот атрибут используется,<br>
+    проверяется и является безопасным<br>
+    ]<br>
+    }<br> 
+    '!name' - активный, но не безопасный атрибут<br>
+    const SCENARIO_CREATE = 'create';<br>
+    const SCENARIO_UPDATE = 'update';<br>
   </p>
 </body>
 </html>
