@@ -1,104 +1,128 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>l1-meet-yii2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" />
   <style>
-      p, h4 {
-        padding-left: 40px;
-      }
-    </style>
+    p,
+    h4 {
+      padding-left: 40px;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgb(90, 122, 134);
+    }
+
+    .container {
+      width: 1140px;      
+      background: white;
+    }
+  </style>
 </head>
-<body> 
-  <h4>Урок 1. Знакомьтесь с Yii</h4>
-  <p> 
-    По правилам YII любой контроллер, должен содержать слово Controller.<br>
-    /index.php?r=my-task/my-test& params<br>
-    Controller наследуется от базового класса Controller (yii/web).<br><br> 
 
-    public function actionIndex(){}<br>
-    /index.php?r=controller/action& params<br><br>
+<body>
+  <div class="content">
+    <div class="container">
+      <h4>Урок 1. Знакомьтесь с Yii</h4>
+      <p>
+        По правилам YII любой контроллер, должен содержать слово Controller.<br>
+        /index.php?r=my-task/my-test& params<br>
+        Controller наследуется от базового класса Controller (yii/web).<br><br>
 
-    actionMyTest<br>
-    MyTaskController<br>
-    /index.php?r=my-task/my-test& params<br><br>
+        public function actionIndex(){}<br>
+        /index.php?r=controller/action& params<br><br>
 
-    Вьюхи лежат в папке views, в подпапке с названием контроллера, если в контроллере есть camelCase,<br>
-    то название в папке пишется через дефис.<br><br>
+        actionMyTest<br>
+        MyTaskController<br>
+        /index.php?r=my-task/my-test& params<br><br>
 
-    Шаблоны будем называть в соответствии с экшоном, но это не обязательно, так как их имена будем задавать<br>
-    в самих шаблонах<br><br>
+        Вьюхи лежат в папке views, в подпапке с названием контроллера, если в контроллере есть camelCase,<br>
+        то название в папке пишется через дефис.<br><br>
 
-    В контроллере для отображения шаблона вызываем метод $this->render('имя шаблона', ['имяПеременной' => значение])<br>
-    Отрендерить без Layout - $this-> renderPartial. Также в контроллере есть свойство Layout.<br>
-    Мы его сможем переопределить. public $layout = 'main' или =false(без лэйаута)<br><br>
+        Шаблоны будем называть в соответствии с экшоном, но это не обязательно, так как их имена будем задавать<br>
+        в самих шаблонах<br><br>
 
-    Model. У нас есть модель как слой - это все классы, занимающиеся, обработкой данных.<br>
-    Model как класс в YII - 1) модель 2) ActiveRecord - наследник модели для работы с БД<br>
-    Модели наследуют от Model (yii\base). Основная задача модели в Yii - хранить данные (публичные свойства)<br>
-    и заниматься их валидацией.<br><br>
+        В контроллере для отображения шаблона вызываем метод $this->render('имя шаблона', ['имяПеременной' =>
+        значение])<br>
+        Отрендерить без Layout - $this-> renderPartial. Также в контроллере есть свойство Layout.<br>
+        Мы его сможем переопределить. public $layout = 'main' или =false(без лэйаута)<br><br>
 
-    Правила валидации в модели public function rules(){return[['name', 'email'], 'required'], ['email', 'email'],<br>
-    ['name', 'string', 'max' => 5]}  Этот метод переопределяют для создания правил<br><br>
+        Model. У нас есть модель как слой - это все классы, занимающиеся, обработкой данных.<br>
+        Model как класс в YII - 1) модель 2) ActiveRecord - наследник модели для работы с БД<br>
+        Модели наследуют от Model (yii\base). Основная задача модели в Yii - хранить данные (публичные свойства)<br>
+        и заниматься их валидацией.<br><br>
 
-    У модели можно вызвать метод -> validate и она будет проверена по методу rules.<br>
-    У всех моделей есть первичная инициализация: $model = new Project(['title' =>'task-tracker', ... ]);<br>
-    Также атрибуты модели можно инициализировать массово уже когда модель существует: <br>
-    -1)  $model->setAttributes(['title' =>'task-tracker', ... ], false)  без false присваиваются<br>
-    safe only атрибуты - определённые в методе rules<br>
-    -2) $model->load(['title' =>'task-tracker', ... ]) Метод load может принять в себя любой массив<br>
-    каких-то значений, в котором он сделает поиск. Пригодится, когда будем связывать модель с формами<br><br>
+        Правила валидации в модели public function rules(){return[['name', 'email'], 'required'], ['email',
+        'email'],<br>
+        ['name', 'string', 'max' => 5]} Этот метод переопределяют для создания правил<br><br>
 
-    Провести валидацию $model->validate(), узнать ошибки $model->getErrors()<br><br>
+        У модели можно вызвать метод -> validate и она будет проверена по методу rules.<br>
+        У всех моделей есть первичная инициализация: $model = new Project(['title' =>'task-tracker', ... ]);<br>
+        Также атрибуты модели можно инициализировать массово уже когда модель существует: <br>
+        -1) $model->setAttributes(['title' =>'task-tracker', ... ], false) без false присваиваются<br>
+        safe only атрибуты - определённые в методе rules<br>
+        -2) $model->load(['title' =>'task-tracker', ... ]) Метод load может принять в себя любой массив<br>
+        каких-то значений, в котором он сделает поиск. Пригодится, когда будем связывать модель с формами<br><br>
 
-    Мы можем создавать собственные валидаторы public function myValidate($attribute, $params)<br>
-    {if ($this->$attribute < 10) {$this->addError($attribute, 'сообщение об ошибке')}}<br>
-    Результат выполнения валидатора - выдача ошибки, если валидация не проходит. В $attribute<br>
-    приходит не значение, а название атрибута. И теперь в rules в имени валидатора можно указать<br>
-    название нашего валидатора 'MyValidate'<br>
-    Если валидатор предполагается использовать в нескольких моделях, то создаём в корне папочку<br>
-    Validators и в ней класс MyValidator extends Valodator (yii Validators). В нём нужно реализовать<br>
-    метод validate Attribute. В модели в методе rules будем указывать название класса MyValidator::class<br><br>
+        Провести валидацию $model->validate(), узнать ошибки $model->getErrors()<br><br>
 
-    В модели также может быть реализована какая-то логика (например форма ещё может отправлять сообщения).<br>
-    Также в форме реализован метод attributeLabels() - в нём мы задаём различные подписи для атрибутов -<br>
-    это особенно актуально при связывании модели с формой.<br><br>
+        Мы можем создавать собственные валидаторы public function myValidate($attribute, $params)<br>
+        {if ($this->$attribute < 10) {$this->addError($attribute, 'сообщение об ошибке')}}<br>
+          Результат выполнения валидатора - выдача ошибки, если валидация не проходит. В $attribute<br>
+          приходит не значение, а название атрибута. И теперь в rules в имени валидатора можно указать<br>
+          название нашего валидатора 'MyValidate'<br>
+          Если валидатор предполагается использовать в нескольких моделях, то создаём в корне папочку<br>
+          Validators и в ней класс MyValidator extends Valodator (yii Validators). В нём нужно реализовать<br>
+          метод validate Attribute. В модели в методе rules будем указывать название класса MyValidator::class<br><br>
 
-    Мы можем нашу модель превращать в массив её атрибутов. $model-toArray(). Также мы можем переопределить<br> 
-    метод fields() для определения настройки полей, попадающих в массив. public function fields()<br>
-    {return ['title', 'description']} и только эти атрибуты попадут в массив. Также для них можно<br>
-    указать алиасы  public function fields() {return ['header' => 'title', 'description']}. <br>
-    Также здесь можно определять анонимные функции и свойства, которых нет<br><br>
+          В модели также может быть реализована какая-то логика (например форма ещё может отправлять сообщения).<br>
+          Также в форме реализован метод attributeLabels() - в нём мы задаём различные подписи для атрибутов -<br>
+          это особенно актуально при связывании модели с формой.<br><br>
 
-    Роутинг - процесс связи между урлом и кодом в нашем приложении.<br><br>
+          Мы можем нашу модель превращать в массив её атрибутов. $model-toArray(). Также мы можем переопределить<br>
+          метод fields() для определения настройки полей, попадающих в массив. public function fields()<br>
+          {return ['title', 'description']} и только эти атрибуты попадут в массив. Также для них можно<br>
+          указать алиасы public function fields() {return ['header' => 'title', 'description']}. <br>
+          Также здесь можно определять анонимные функции и свойства, которых нет<br><br>
 
-    <b>Хэлпер</b> - класс, у которого собраны статические методы, для выполнения определённых функций:<br>
-    генерация html и другие конкретные задачи. Свой хелпер можно сделать, унаследовашись от BaseХэлпера.<br>
-    Рассмотрим функциональность модели. Данные в ней хранятся не в свойствах и полях, а в атрибутах<br>
-    (просто так называют поля и свойства, так как в разных типах моделей данные будут хранится по разному).<br>
-    ->getAttributes() - массив всех атрибутов модели ActiveRecord или массив всех публичных нестатических свойств Модели.<br>
-    VarDumper::dumpAsString($product->getAttributes(), глубина массива цифрой, расскрашивать если то true);<br>
-    VarDumper::dump($product->getAttributes(), 4, true).<br><br>
+          Роутинг - процесс связи между урлом и кодом в нашем приложении.<br><br>
 
-    <b>Сценарии</b> - помогают нам, когда мы одну и туже модель применяем в разных ситуациях<br>
-    $model->setScenario('create') (в actionCreate указывавем)<br>
-    $model->setScenario('update') (в actionUpdate указывавем)<br>
-    а в методе rules указывавем 'on' => 'update' - будет работать во всех этих сценариях;<br>
-    'except' => 'update' - во всех кроме update;<br><br>
+          <b>Хэлпер</b> - класс, у которого собраны статические методы, для выполнения определённых функций:<br>
+          генерация html и другие конкретные задачи. Свой хелпер можно сделать, унаследовашись от BaseХэлпера.<br>
+          Рассмотрим функциональность модели. Данные в ней хранятся не в свойствах и полях, а в атрибутах<br>
+          (просто так называют поля и свойства, так как в разных типах моделей данные будут хранится по разному).<br>
+          ->getAttributes() - массив всех атрибутов модели ActiveRecord или массив всех публичных нестатических свойств
+          Модели.<br>
+          VarDumper::dumpAsString($product->getAttributes(), глубина массива цифрой, расскрашивать если то true);<br>
+          VarDumper::dump($product->getAttributes(), 4, true).<br><br>
 
-    scenarios() {<br>
-    return [<br>
-    self:SCENARIO_DEFAULT => ['name', 'price', 'id'] - активные атрибуты - безопасные атрибуты<br>
-    (можно производить массовую загрузку) и атрибуты, для которых выполняется  валидация.<br>
-    Теперь правило перестаёт дейстовать: если для атрибута написано правило, то этот атрибут используется,<br>
-    проверяется и является безопасным<br>
-    ]<br>
-    }<br> 
-    '!name' - активный, но не безопасный атрибут<br>
-    const SCENARIO_CREATE = 'create';<br>
-    const SCENARIO_UPDATE = 'update';<br>
-  </p>
+          <b>Сценарии</b> - помогают нам, когда мы одну и туже модель применяем в разных ситуациях<br>
+          $model->setScenario('create') (в actionCreate указывавем)<br>
+          $model->setScenario('update') (в actionUpdate указывавем)<br>
+          а в методе rules указывавем 'on' => 'update' - будет работать во всех этих сценариях;<br>
+          'except' => 'update' - во всех кроме update;<br><br>
+
+          scenarios() {<br>
+          return [<br>
+          self:SCENARIO_DEFAULT => ['name', 'price', 'id'] - активные атрибуты - безопасные атрибуты<br>
+          (можно производить массовую загрузку) и атрибуты, для которых выполняется валидация.<br>
+          Теперь правило перестаёт дейстовать: если для атрибута написано правило, то этот атрибут используется,<br>
+          проверяется и является безопасным<br>
+          ]<br>
+          }<br>
+          '!name' - активный, но не безопасный атрибут<br>
+          const SCENARIO_CREATE = 'create';<br>
+          const SCENARIO_UPDATE = 'update';<br>
+      </p>
+    </div>
+  </div>
 </body>
+
 </html>
