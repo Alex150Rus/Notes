@@ -219,7 +219,11 @@
         Дадим 4-ому пользователю доступ к третьей задаче:<br>
         $user = User::findOne(4);<br>
         $task = Task::findOne(3);<br>
-        $user -> link (User::RELATION_ACCESSED_TASKS, $task);
+        $user -> link (User::RELATION_ACCESSED_TASKS, $task);<br>
+        удалить связанные задачи $user -> unlink (User::RELATION_ACCESSED_TASKS, $task, true - чтобы запись удалилась, а не обнулялось поле);<br><br>
+
+        if($this->getIsNewRecord) - можно применять в AR, чтобы <b>определить новые данные в модели или нет</b> (существуют в базе).<br>
+        Этот метод использует массив oldAttributes. Если он пустой, то модель новая (этих данных нет в базе);
       </p>
     </div>
   </div>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Аутентификация и Авторизация</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" />
+  <style>
+    p,
+    h4 {
+      padding: 0 40px;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgb(90, 122, 134);
+    }
+
+    .container {
+      width: 1140px;
+      background: white;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="content">
+    <div class="container">
+      <h4>Аутентификация и Авторизация. Поведения</h4>
+      <p>
+
+        <b>Поведения.</b> Медоды AR, начинающиеся на before, after.<br>
+        Например, в AR можно переназначить метод <b>beforeSave</b>, котрый будет выполняться перед сохранением данных в БД, который, например,<br>
+        будет преобразовывать эти данные. Это часто используют, чтобы в атрибут сохранять массив данных, который перед сохранением<br>
+        сериализуют с помощью JSON или каких-то других функций и в базу отправляетсыя строковое представление.<br> 
+        public function beforeSave(insert){$this->description = jsone_encode($this->description);}<br>
+        Рекомендуется использовать эти методы как можно реже, так как это очень сильно запутывает логику работы приложения.<br>
+        Также важно, что некоторые такие методы, особенно начинающиеся с before нужно смотреть в описании как перекрывать. Нaпример:<br>
+        public function beforeSave{<br>
+          if(!parent::beforeSafe($insert)) {<br>
+            return false <br>
+          }<br>  
+          //... put your code here<br>
+          return true<br>
+        }<br>
+        В контроллере тоже есть методы before и after: beforeAction (настраивают менюшки, лэйауты...), afterAction<br><br>
+
+        <b>Behaviours/Поведения</b> реализуют паттерн программирования, который называется миксин. В PHP этот приём реализованн с помощью трэйтов<br>
+        Но поведения (php версия 5.2) появились за долго до того как в PHP появились трэйты(версия 5.4). Миксин - способ расширения функционала<br>
+        класса без применения наследования.<br>
+        При инициализации класса запустится поведение. В нашем случае оно создаст два объекта двух классов, которые сохранятся в свойстве базового<br>
+        класса Component - private $_behaviours, из которого в дальнейшем их можно доставать и использовать: $this->denyCallback. Это сработает<br>,
+        хотя в самом контроллере такого свойства нет, из-за магического метода _get, который работает, в том числе, и с поведениями. Аналогичная<br>
+        логика происходит и при работе с методами, но при помощи магического метода __call<br>
+        public function behaviors()<br>
+        {<br>
+            return [<br>
+                'access' => [<br>
+                    'class' => AccessControl::className(),<br>
+                    'only' => ['logout'],<br>
+                    'rules' => [<br>
+                        [<br>
+                            'actions' => ['logout'],<br>
+                            'allow' => true,<br>
+                            'roles' => ['@'],<br>
+                        ],<br>
+                    ],<br>
+                ],<br>
+                'verbs' => [<br>
+                    'class' => VerbFilter::className(),<br>
+                    'actions' => [<br>
+                        'logout' => ['post'],<br>
+                    ],<br>
+                ],<br>
+            ];<br>
+        }<br>
+        Другой способ работы с поведениями - подключение их к определённым событиям (например, insert или update) и выполнение каких-то<br>
+        определённых действий.<br><br>
+
+        Вместо того, чтобы заполнять некоторые атрибуты вручную, можно применить поведения, которые их автоматически заполнят. Для этого <br>
+        нужно в классе перекрыть метод behaviors().<br>
+        public function behaviors()<br>
+        {<br>
+            return [<br>
+                //короткий способ описания поведения без настрйоки<br>
+                TimestampBehavior::class<br>
+            ];<br>
+        }<br>
+        В контроллере Test в экшоне создадим объект и не укажем поля с датами cteated_at и updated_at. Созданное нами поведение TimestampBehavior<br>
+        само заполнит их без предварительной настройки, благодаря тому, что название наших двух полей cteated_at и updated_at совпадают с<br>
+        названиями по умолчанию, заложенными в этот behavior.<br>
+        public function actionIndex()<br>
+        {<br>
+            $task = new Task();<br>
+            $task -> description ='описание';<br>
+            $task -> title = 'название';<br>
+            $task -> creator_id = 4;<br>
+            $task -> save();<br>
+
+            _end($task);<br> 
+        В противном случае нужно было бы настраивать behavior:<br>
+        return [['class' => TimestampBehavior::class, 'createdAtAttribute'=> 'create_time'(название поля), 'updatedAtAttribute' => 'update_time']]<br>
+        [BlameableBehavior::class], <b>позволяет заполнить поля creator_id и updater_id</b><br>
+        ['class' => BlameableBehavior::class, 'createdByAttribute' => 'creator_id', 'updatedByAttribute' => 'updater_id'], Это будет работать<br>
+        только если пользоватль авторазиван и у нас он записан в качестве текущего.<br><br>
+
+        <b>Плюсы поведений.</b> Их можно наследовать. Это полноценные классы. Могут сами подключаться к событиям.<br>
+        <b>Минусы поведений.</b> Очень плохо влияют на производительность. Не стоит их подключать к классу в большом количестве.<br><br>
+
+        <b>Аутентификация и Авторизация.</b><br>
+        Все действия производятся при помощи компонента User yii\web\User<br>
+        'user' => [<br>
+        // класс, с помощью которого компонент может использовать  информацию о пользователе. и здесь должен быть наш класс AR User<br>
+        'identityClass' => 'app\models\User',<br>
+        'enableAutoLogin' => true,<br><br>
+
+        В нашу модель AR User уопируем метод findByUsername и написать его в виде: public static function findByUsername($username)<br>
+        {return self::findOne(['username' => $username]);}<br>
+        Дальше переписываем: public function validatePassword($password)<br>
+        {return  Yii::$app->getSecurity()->validatePassword($password, $this->password_hash);}<br>
+        Также наш User обязательно должен реализовывать интерфейс yii\web\identityInterface - значит он должен содержать его методы<br><br>
+
+        <b>Создание пользователя</b> В модели создадим св-во password, во вьюхе криэйта уберём ненужнеы поля и password_hash заменим на password<br>
+        уберём password_hash из rules и добавим туда password. Теперь нужно, чтобы password сохранялся в виде хэша с помощью метода beforeSave<br>
+        public function beforeSave($insert)<br>
+        {<br>
+            if (parent::beforeSave($insert)) {<br>
+                if($this->password) {<br>
+                    $this->password_hash = \Yii::$app->security->generatePasswordHash($this->password);<br>
+                }<br>
+                if ($this->isNewRecord) {<br>
+                    $this->auth_key = \Yii::$app->security->generateRandomString();<br>
+                }<br>
+                return true;<br>
+            }<br>
+            return false;<br>
+        }<br><br>
+
+        <b>Авторизация</b> - назначение пользователю определённых функций - доступа к контроллерам на сайте<br><br>
+
+        Прежде чем изменить метод, нужно сохранить его интерфейс. Метод должен возвращать те же значения, которые
+        возвращал<br>
+        до этого. Public static function findByUsername ($username) {if($user = Users::findOne(['login' =>
+        $username]))<br>
+        {return new static (['id' => $user->id, 'username' => $user->login, 'password' => $user->password]);} return
+        null};<br>
+        new Static() - экземпляр текущего объекта. Выше можно было использовать $users->toArray при инициализации
+        объекта,<br>
+        но у нас разные названия в БД и объекте. Поэтому мы назначили всё вручную. Однако мы можем переопределить поля
+        объекта,<br>
+        получаемого из БД, переопределив в модели метод fields: public function fields() {return ['id', =>
+        'username'=>'login',<br>
+        'password']}. И теперь мы можем писать так new Static($user->toArray()); Единственный недостаток того, что мы
+        сделали,<br>
+        login всегда будет заменяться на username, а это не всегда может быть нужно. Чтобы такого не было, мы можем
+        применить<br>
+        сценарии. Это ещё одна из функциональностей моделей. У любой модели есть свойство scenario - это текущий
+        сценарий,<br>
+        который по умолчанию равен dafault. Установка сценария. $user-> setScenario('auth'). Это флаг, показывающий,
+        текущий<br>
+        путь развития логики. Хорошая практика - записывать флаги в константы. Const SCENARIO_AUTH = 'auth'. И тогда
+        запишем<br>
+        $user->setScenario(Users::SCENARIO_AUTH). В первую очередь сценарии используются для управления правилами
+        валидации.<br>
+        Т.е. мы можем переопределить метод scenarios и в нём мы можем указать при каком сценарии какие поля
+        проверять<br>
+        public function scenarios(){return ['auth' => ['login', 'pass']]}. Т.е. при сценарии auth проверяй только login
+        и pass.<br>
+        Сработает при вызове метода validate. Также можно задать не только валидацию полей, но и конкретных правил.<br>
+        Вот например правило будет применяться только при нашем сценарии public function rules() {return [[['login',
+        'password'],<br>
+        'required', 'on' => static::SCENARIO_AUTH]]}; Также можем поставить этот флаг в метод fields.<br>
+        public function fields() {if ($this->scenario == static::SCENARIO_AUTH)<br>
+        {return ['id', => 'username'=>'login', 'password']}return parent::fields()}<br><br>
+
+        <b>Работа с паролем:</b> \YII::$app->security->generatePasswordHash(). Содержит в себе достаточно надёжный
+        алгоритм генерирования хэша.<br>
+
+
+      </p>
+    </div>
+  </div>
+</body>
+
+</html>
