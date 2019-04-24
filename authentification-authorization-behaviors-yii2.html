@@ -118,7 +118,7 @@
         'identityClass' => 'app\models\User',<br>
         'enableAutoLogin' => true,<br><br>
 
-        В нашу модель AR User уопируем метод findByUsername и написать его в виде: public static function findByUsername($username)<br>
+        В нашу модель AR User копируем метод findByUsername и написать его в виде: public static function findByUsername($username)<br>
         {return self::findOne(['username' => $username]);}<br>
         Дальше переписываем: public function validatePassword($password)<br>
         {return  Yii::$app->getSecurity()->validatePassword($password, $this->password_hash);}<br>
@@ -179,8 +179,6 @@
 
         <b>Работа с паролем:</b> \YII::$app->security->generatePasswordHash(). Содержит в себе достаточно надёжный
         алгоритм генерирования хэша.<br>
-
-
       </p>
     </div>
   </div>
